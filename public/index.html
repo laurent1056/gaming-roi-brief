@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaming Activation ROI Brief Generator — Moonrock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111114;
+    --surface2: #18181d;
+    --border: #2a2a32;
+    --accent: #e8ff47;
+    --accent2: #ff4f4f;
+    --text: #f0f0f0;
+    --muted: #6b6b7a;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .header-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-tag::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-family: var(--sans);
+    font-size: 15px;
+    color: var(--muted);
+    margin-top: 12px;
+    font-weight: 300;
+    max-width: 520px;
+    line-height: 1.6;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  label span.req { color: var(--accent); margin-left: 2px; }
+
+  input, textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: var(--sans);
+    font-size: 14px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    resize: vertical;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #3a3a46;
+    font-size: 13px;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+
+  textarea { min-height: 72px; }
+
+  .section-label {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::before {
+    content: attr(data-num);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .generate-btn {
+    margin-top: 32px;
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    color: #0a0a0b;
+    border: none;
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .generate-btn:hover:not(:disabled) {
+    background: #f5ff6e;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(232,255,71,0.25);
+  }
+
+  .generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .generate-btn .spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .generate-btn.loading .btn-text { display: none; }
+  .generate-btn.loading .spinner { display: block; }
+
+  #output-section {
+    display: none;
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .output-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  #output-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 36px;
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  #output-content h2 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  #output-content h3 {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 32px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #output-content p { margin-bottom: 12px; color: #c8c8d4; font-weight: 300; }
+
+  #output-content ul, #output-content ol { padding-left: 20px; margin-bottom: 12px; }
+
+  #output-content li { color: #c8c8d4; font-weight: 300; margin-bottom: 6px; }
+
+  #output-content hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  #output-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13px;
+  }
+
+  #output-content th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+
+  #output-content td {
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    color: #c8c8d4;
+    font-weight: 300;
+    vertical-align: top;
+  }
+
+  #output-content td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  #output-content strong { color: var(--text); font-weight: 600; }
+  #output-content em { color: var(--muted); font-style: italic; }
+  #output-content code {
+    font-family: var(--mono);
+    background: var(--surface2);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  .error-box {
+    background: rgba(255,79,79,0.08);
+    border: 1px solid rgba(255,79,79,0.3);
+    border-radius: 4px;
+    padding: 14px 18px;
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  footer {
+    margin-top: 80px;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  footer p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+    #output-content { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-tag">Moonrock · AI Tools · v1.0</div>
+    <h1>Gaming Activation<br><span>ROI Brief Generator</span></h1>
+    <p class="subtitle">Turn raw event specs into a client-ready one-pager with projected KPIs, benchmark context, and a CMO-legible ROI summary.</p>
+  </header>
+
+  <div id="form-area">
+
+    <div class="section-label" data-num="01">Brand & Event</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Client / Brand <span class="req">*</span></label>
+        <input type="text" id="brand" placeholder="e.g. Mountain Dew / Beverage">
+      </div>
+      <div class="form-group">
+        <label>Event Name & Type <span class="req">*</span></label>
+        <input type="text" id="event" placeholder="e.g. Rolling Loud Miami / Music Festival">
+      </div>
+      <div class="form-group">
+        <label>Dates & Duration</label>
+        <input type="text" id="dates" placeholder="e.g. July 18–20, 3 days">
+      </div>
+      <div class="form-group">
+        <label>Venue & Location</label>
+        <input type="text" id="venue" placeholder="e.g. Hard Rock Stadium, Miami FL">
+      </div>
+      <div class="form-group">
+        <label>Total Event Attendance <span class="req">*</span></label>
+        <input type="text" id="attendance" placeholder="e.g. 65,000/day × 3 days = 195,000">
+      </div>
+      <div class="form-group">
+        <label>Target Audience</label>
+        <input type="text" id="audience" placeholder="e.g. 18–34 male-skewing, hip-hop fans">
+      </div>
+    </div>
+
+    <div class="section-label" data-num="02">Activation Setup</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Footprint Size</label>
+        <input type="text" id="footprint" placeholder="e.g. 40×60 ft branded zone">
+      </div>
+      <div class="form-group">
+        <label>Gaming Stations / Setup</label>
+        <input type="text" id="setup" placeholder="e.g. 6 stations: 4× racing sims, 2× FPS pods">
+      </div>
+      <div class="form-group">
+        <label>Games Featured</label>
+        <input type="text" id="games" placeholder="e.g. Forza Motorsport, Call of Duty: Warzone">
+      </div>
+      <div class="form-group">
+        <label>Tournament Structure</label>
+        <input type="text" id="tournament" placeholder="e.g. Open brackets every 2 hrs, merch prizes">
+      </div>
+      <div class="form-group">
+        <label>Staffing</label>
+        <input type="text" id="staffing" placeholder="e.g. 8 brand ambassadors, 1 MC, 1 tech lead">
+      </div>
+      <div class="form-group">
+        <label>Budget (optional)</label>
+        <input type="text" id="budget" placeholder="e.g. $280,000 all-in">
+      </div>
+    </div>
+
+    <div class="section-label" data-num="03">Objectives & Notes</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Brand Objectives <span class="req">*</span></label>
+        <textarea id="objectives" placeholder="e.g. Drive trial of new product SKU, generate UGC, build gamer cred"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Secondary Goals</label>
+        <textarea id="secondary" placeholder="e.g. Email/SMS lead capture, social following growth"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Special Notes</label>
+        <textarea id="notes" placeholder="Celebrity appearance, main stage integration, exclusive product launch, etc."></textarea>
+      </div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+
+    <button class="generate-btn" id="generate-btn" onclick="generate()">
+      <span class="btn-text">Generate ROI Brief →</span>
+      <div class="spinner"></div>
+    </button>
+
+  </div>
+
+  <div id="output-section">
+    <div class="output-header">
+      <span class="output-label">// Generated Brief</span>
+      <button class="copy-btn" onclick="copyOutput()">Copy Markdown</button>
+    </div>
+    <div id="output-content"></div>
+  </div>
+
+  <footer>
+    <p>Built by <a href="https://github.com/YOUR_USERNAME">Laurent</a> · Moonrock AI Toolkit · Powered by Claude</p>
+  </footer>
+
+</div>
+
+<script>
+  function val(id) { return document.getElementById(id).value.trim(); }
+
+  function showError(msg) {
+    const el = document.getElementById('error-box');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('error-box').style.display = 'none';
+  }
+
+  function buildPrompt() {
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return `PERSONA:
+You are a gaming experiential marketing strategist with 10+ years producing brand activations at live events — concerts, festivals, conventions, sporting events, and esports tournaments. You've built ROI models for Fortune 500 brands and know how to translate activation specs into the language CFOs and CMOs sign off on. You think like the people at Superfly, GMR Marketing, and Momentum Worldwide — but with deep gaming-native fluency.
+
+Your briefs are known for three things: credible numbers (every KPI has a visible assumption behind it), clean visual hierarchy (scannable in 90 seconds), and a "so what" layer that connects gaming metrics to brand business objectives.
+
+EVENT SPECS:
+CLIENT / BRAND: ${val('brand') || '[Not provided]'}
+EVENT NAME & TYPE: ${val('event') || '[Not provided]'}
+DATES & DURATION: ${val('dates') || '[Not provided — make a clearly labeled assumption]'}
+VENUE & LOCATION: ${val('venue') || '[Not provided — make a clearly labeled assumption]'}
+TOTAL EVENT ATTENDANCE: ${val('attendance') || '[Not provided — ⚠ flag this in risk section]'}
+TARGET AUDIENCE: ${val('audience') || '[Not provided — make a clearly labeled assumption]'}
+FOOTPRINT: ${val('footprint') || '[Not provided]'}
+ACTIVATION SETUP: ${val('setup') || '[Not provided]'}
+GAMES FEATURED: ${val('games') || '[Not provided]'}
+TOURNAMENT / STRUCTURE: ${val('tournament') || '[Not provided]'}
+STAFFING: ${val('staffing') || '[Not provided]'}
+BRAND OBJECTIVES: ${val('objectives') || '[Not provided]'}
+SECONDARY GOALS: ${val('secondary') || 'None specified'}
+BUDGET: ${val('budget') || 'Not provided — omit Cost Per Engagement from table'}
+SPECIAL NOTES: ${val('notes') || 'None'}
+
+OUTPUT STRUCTURE — produce this exactly, in order:
+
+## [CLIENT BRAND] × [EVENT NAME]
+### Gaming Activation ROI Brief
+[Date range] · [Venue, City]
+Prepared by Moonrock
+
+---
+
+### ACTIVATION OVERVIEW (2–3 sentences)
+
+---
+
+### AUDIENCE SNAPSHOT
+- Total event attendance: [#]
+- Estimated footprint traffic (% of total): [# with % assumption shown]
+- Core target: [demographics, psychographics in 1 line]
+- Gaming affinity index: [High / Medium — with 1-line rationale]
+
+---
+
+### PROJECTED KPIs
+
+| Metric | Projected | Basis / Assumption |
+|--------|-----------|-------------------|
+| Total Footprint Visits | [#] | [X% of daily attendance × days] |
+| Active Players (sessions) | [#] | [sessions/hr per station × stations × open hours] |
+| Avg. Dwell Time | [X min] | [competitive gaming session + wait + spectate buffer] |
+| Brand Impressions | [#] | [players + spectators + passerby visibility] |
+| UGC Posts Estimated | [#] | [% of players who post based on category benchmark] |
+| Est. Social Reach | [#] | [UGC posts × avg follower count for target demo] |
+| Lead Captures | [#] | [opt-in rate benchmark × active player count] |
+| Cost Per Engagement | [$X] | [budget ÷ active players — omit if budget not provided] |
+| Media Value Equivalent | [$X] | [impressions × CPM benchmark for live event media] |
+
+---
+
+### ROI SUMMARY
+4–6 sentences for a CMO. Connect gaming KPIs to brand objectives. End with the single strongest number.
+
+---
+
+### BENCHMARK CONTEXT
+3 bullet points comparing to industry norms for live event gaming activations.
+
+---
+
+### KEY ASSUMPTIONS & RISK FLAGS
+- ✓ [Assumption] — [confidence: High / Medium / Low]
+- ⚠ [Risk] — [what would cause this to miss]
+
+---
+
+### RECOMMENDED SUCCESS METRICS TO TRACK ON-SITE
+- [Metric] → [Capture method]
+
+---
+
+### ONE-LINE SELL
+A single sentence a brand manager can use verbatim in their internal sign-off deck.
+
+---
+*Projections based on specs provided ${today}. Actuals will vary.*
+
+STYLE: Confident and specific. Show all math. Gaming-native but CMO-legible. No vague claims without data.`;
+  }
+
+  function renderMarkdown(text) {
+    return text
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^---$/gm, '<hr>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/^\| (.+) \|$/gm, (match, inner) => {
+        const cells = inner.split(' | ');
+        return '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+      })
+      .replace(/(<tr>.*<\/tr>\n?)+/gs, match => {
+        const rows = match.trim().split('\n').filter(r => r.includes('<tr>'));
+        if (rows.length === 0) return match;
+        const headerRow = rows[0].replace(/<td>/g, '<th>').replace(/<\/td>/g, '</th>');
+        const bodyRows = rows.slice(2).join('\n');
+        return `<table><thead>${headerRow}</thead><tbody>${bodyRows}</tbody></table>`;
+      })
+      .replace(/^\- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/gs, match => `<ul>${match}</ul>`)
+      .replace(/\n\n/g, '</p><p>');
+  }
+
+  async function generate() {
+    hideError();
+
+    if (!val('brand') || !val('event') || !val('objectives')) {
+      showError('Please fill in at minimum: Client/Brand, Event Name, and Brand Objectives.');
+      return;
+    }
+
+    const btn = document.getElementById('generate-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    document.getElementById('output-section').style.display = 'none';
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: buildPrompt() }]
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || `Server error ${response.status}`);
+      }
+
+      const data = await response.json();
+      const rawText = data.content.map(b => b.text || '').join('');
+
+      const outputEl = document.getElementById('output-content');
+      outputEl.innerHTML = renderMarkdown(rawText);
+      outputEl.dataset.raw = rawText;
+
+      document.getElementById('output-section').style.display = 'block';
+      document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+      showError('Error: ' + err.message);
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  function copyOutput() {
+    const raw = document.getElementById('output-content').dataset.raw || '';
+    navigator.clipboard.writeText(raw).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+</script>
+</body>
+</html>
